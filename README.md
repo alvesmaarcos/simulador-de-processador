@@ -1,5 +1,22 @@
 # Simulador de processador utilizando C
-### Projeto para a disciplina de Arquitetura de Computadores.
+Projeto para a disciplina de Arquitetura de Computadores.
+
+### Registradores
+- R0-R7, PC, LR e SP.
+
+# Memória de dados
+### No mesmo formato do arquivo de entrada (<endereço>:<conteúdo>)
+
+###### Assuma que toda a faixa de endereços está disponível e que a memória está inicialmente zerada. Devem ser exibidas apenas as posições que forem acessadas pelo código (desconsiderando a pilha).
+
+# Pilha
+###  No mesmo formato do arquivo de entrada (<endereço>:<conteúdo>)
+
+ - Assuma que o ponteiro de pilha com o valor inicial de 0x82000000 e que pilha possui tamanho de 16 bytes
+
+# Flags
+- Exiba os valores finais das flags C, Ov, Z, S
+- Assuma que as todas iniciam zeradas
 
 # Requisitos:
 - O projeto deve ter uma Instrução NOP.
