@@ -19,7 +19,7 @@ Projeto para a disciplina de Arquitetura de Computadores.
 - Assuma que as todas iniciam zeradas
 
 # Requisitos:
-- O projeto deve ter uma Instrução NOP.
+- O projeto deve ter uma Instrução NOP. Sempre que ocorrer uma instrução NOP, o simulador deve exibir as mesmas informações descritas no item c.
 - O projeto deve ter uma instrução HALT, que encerrará o fluxo.
 - MOV Rd, Rm      -> Rd = Rm, que busca o registrador d, o registrador m, e insere o valor de Rm em Rd.
 - MOV Rd, #Im     -> Rd = #Im, que busca o registrador d e atribui um valor Immediate a Rd.
