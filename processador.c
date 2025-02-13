@@ -4,12 +4,12 @@
 #include <stdbool.h>
 #include <string.h>
 
-// Estrutura para os registradores e flags
+
 typedef struct {
-    uint16_t R[8];  // Registradores R0-R7
-    uint16_t PC;    // Program Counter
-    uint16_t IR;    // Instruction Register
-    uint32_t SP;    // Stack Pointer (32 bits)
+    uint16_t R[8];
+    uint16_t PC;
+    uint16_t IR;
+    uint32_t SP;
     struct {
         bool C;
         bool Ov;
