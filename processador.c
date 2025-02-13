@@ -9,7 +9,6 @@ typedef struct {
     uint16_t R[8];  // Registradores R0-R7
     uint16_t PC;    // Program Counter
     uint16_t IR;    // Instruction Register
-    uint16_t LR;    // Link Register
     uint32_t SP;    // Stack Pointer (32 bits)
     struct {
         bool C;    // Flag de Carry
@@ -32,7 +31,6 @@ void print_state(Registers *reg) {
         printf("R%d: 0x%04X\n", i, reg->R[i]);
     }
     printf("PC: 0x%04X\n", reg->PC);
-    printf("LR: 0x%04X\n", reg->LR);
     printf("SP: 0x%08X\n", reg->SP);
 
     // Memória de dados
@@ -119,6 +117,9 @@ while (!halt) {
         uint8_t imm = reg.IR & 0xFF;             // Valor imediato
 
         switch (opcode) {
+            case 0x02:  //testar se está funcionando o (MOV Rd, Rm)
+                reg.R[rd] = rs;
+                break;
             case 0x03:  // MOV Rd, #imm
                 reg.R[rd] = imm;
                 break;
