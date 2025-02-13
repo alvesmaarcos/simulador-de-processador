@@ -11,21 +11,20 @@ typedef struct {
     uint16_t IR;    // Instruction Register
     uint32_t SP;    // Stack Pointer (32 bits)
     struct {
-        bool C;    // Flag de Carry
-        bool Ov;   // Flag de Overflow
-        bool Z;    // Flag de Zero
-        bool S;    // Flag de Sinal
+        bool C;
+        bool Ov;
+        bool Z;
+        bool S;
     } flags;
 } Registers;
 
 // Memórias
-uint16_t prog_mem[0x10000];  // Memória de programa (16 bits de endereço)
-uint16_t data_mem[0x10000];  // Memória de dados (16 bits de endereço)
-uint16_t stack_mem[16];      // Pilha (16 bytes)
+uint16_t prog_mem[0x10000];  // 16 bits
+uint16_t data_mem[0x10000];  // 16 bits
+uint16_t stack_mem[16];      // 16 bytes
 
-// Função para exibir o estado conforme especificado
 void print_state(Registers *reg) {
-    // Registradores
+
     printf("Registradores:\n");
     for (int i = 0; i < 8; i++) {
         printf("R%d: 0x%04X\n", i, reg->R[i]);
@@ -34,7 +33,7 @@ void print_state(Registers *reg) {
     printf("SP: 0x%08X\n", reg->SP);
 
     // Memória de dados
-    printf("\nMemória de dados:\n");
+    printf("\nMemoria de dados:\n");
     for (int i = 0; i < 0x10000; i++) {
         if (data_mem[i] != 0) {
             printf("0x%04X: 0x%04X\n", i, data_mem[i]);
@@ -128,9 +127,6 @@ while (!halt) {
                 break;
             case 0x05:  // SUB Rd, Rs, Rt
                 reg.R[rd] = reg.R[rs] - reg.R[(reg.IR >> 2) & 0x07];
-                break;
-            case 0x06:  // PSH Rs
-                push(&reg, reg.R[rs]);
                 break;
             case 0x07:  // POP Rd
                 reg.R[rd] = pop(&reg);
