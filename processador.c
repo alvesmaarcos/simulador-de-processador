@@ -43,7 +43,7 @@ void print_state(Registers *reg) {
     // Pilha
     printf("\nPilha:\n");
     for (int i = 0; i < 16; i++) {
-        printf("0x%08X: 0x%04X\n", 0x82000000 + i * 2, stack_mem[i]);
+        printf("0x%08X: 0x%04X\n", 0x82000000 - i * 2, stack_mem[i]);
     }
 
     // Flags
