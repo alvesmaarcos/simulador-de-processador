@@ -4,36 +4,39 @@
 #include <stdbool.h>
 #include <string.h>
 
-
+// Estrutura para os registradores e flags
 typedef struct {
-    uint16_t R[8];
-    uint16_t PC;
-    uint16_t IR;
-    uint32_t SP;
+    uint16_t R[8];  // Registradores R0-R7
+    uint16_t PC;    // Program Counter
+    uint16_t IR;    // Instruction Register
+    uint16_t LR;    // Link Register
+    uint32_t SP;    // Stack Pointer (32 bits)
     struct {
-        bool C;
-        bool Ov;
-        bool Z;
-        bool S;
+        bool C;    // Flag de Carry
+        bool Ov;   // Flag de Overflow
+        bool Z;    // Flag de Zero
+        bool S;    // Flag de Sinal
     } flags;
 } Registers;
 
 // Memórias
-uint16_t prog_mem[0x10000];  // 16 bits
-uint16_t data_mem[0x10000];  // 16 bits
-uint16_t stack_mem[16];      // 16 bytes
+uint16_t prog_mem[0x10000];  // Memória de programa (16 bits de endereço)
+uint16_t data_mem[0x10000];  // Memória de dados (16 bits de endereço)
+uint16_t stack_mem[16];      // Pilha (16 bytes)
 
+// Função para exibir o estado conforme especificado
 void print_state(Registers *reg) {
-
+    // Registradores
     printf("Registradores:\n");
     for (int i = 0; i < 8; i++) {
         printf("R%d: 0x%04X\n", i, reg->R[i]);
     }
     printf("PC: 0x%04X\n", reg->PC);
+    printf("LR: 0x%04X\n", reg->LR);
     printf("SP: 0x%08X\n", reg->SP);
 
     // Memória de dados
-    printf("\nMemoria de dados:\n");
+    printf("\nMemória de dados:\n");
     for (int i = 0; i < 0x10000; i++) {
         if (data_mem[i] != 0) {
             printf("0x%04X: 0x%04X\n", i, data_mem[i]);
@@ -53,12 +56,12 @@ void print_state(Registers *reg) {
 
 // Função para empilhar um valor na pilha
 void push(Registers *reg, uint16_t value) {
-    if (reg->SP < 0x82000000 || reg->SP >= 0x82000020) {
+    if (reg->SP < 0x82000000 || reg->SP > 0x82000020) {
         fprintf(stderr, "Erro: Estouro de pilha!\n");
         exit(1);
     }
-    stack_mem[(reg->SP - 0x82000000) / 2] = value;
     reg->SP -= 2;
+    stack_mem[(reg->SP - 0x82000000) / 2] = value;
 }
 
 // Função para desempilhar um valor da pilha
@@ -105,7 +108,7 @@ int main(int argc, char *argv[]) {
     bool halt = false;
 while (!halt) {
         // Fetch
-        if (reg.PC >= 0xFFFF) break;  // Fim do programa
+        if (reg.PC >= 0xFFFE) break;  // Fim do programa
         reg.IR = prog_mem[reg.PC];
         uint16_t next_pc = reg.PC + 2;
 
@@ -116,24 +119,37 @@ while (!halt) {
         uint8_t imm = reg.IR & 0xFF;             // Valor imediato
 
         switch (opcode) {
-            case 0x02:  //testar se está funcionando o (MOV Rd, Rm)
-                reg.R[rd] = rs;
-                break;
             case 0x03:  // MOV Rd, #imm
                 reg.R[rd] = imm;
                 break;
-            case 0x04:  // ADD Rd, Rs, Rt
+            case 0x08:  // ADD Rd, Rs, Rt
                 reg.R[rd] = reg.R[rs] + reg.R[(reg.IR >> 2) & 0x07];
                 break;
             case 0x05:  // SUB Rd, Rs, Rt
                 reg.R[rd] = reg.R[rs] - reg.R[(reg.IR >> 2) & 0x07];
                 break;
-            case 0x07:  // POP Rd
-                reg.R[rd] = pop(&reg);
-                break;
-            case 0x08:  // CMP Rs, Rt
-                reg.flags.Z = (reg.R[rs] == reg.R[(reg.IR >> 2) & 0x07]);
-                reg.flags.S = (reg.R[rs] < reg.R[(reg.IR >> 2) & 0x07]);
+                case 0x00:  // Instruções que começam com 0x00 (PSH, POP ou NOP)
+                {
+                    // Extrai os dois últimos bits da instrução
+                    uint8_t op_type = reg.IR & 0x03;
+            
+                    // Depuração: Exibe o valor de IR e os dois últimos bits
+                    printf("IR: 0x%04X, op_type: 0x%02X\n", reg.IR, op_type);
+            
+                    // Verifica o tipo de operação
+                    if (op_type == 0x01) {  // PSH Rs (termina com 01)
+                        uint8_t rsPsh = (reg.IR >> 2) & 0x02;  // Extrai o registrador fonte (Rs)
+                        printf("PSH R%d\n", rsPsh);  // Depuração: Exibe o registrador fonte
+                        push(&reg, reg.R[rsPsh]);  // Empilha o valor de Rs
+                    }
+                    else if (op_type == 0x02) {  // POP Rd (termina com 10)
+                        uint8_t rd = (reg.IR >> 8) & 0x07;  // Extrai o registrador destino (Rd)
+                        printf("POP R%d\n", rd);  // Depuração: Exibe o registrador destino
+                        reg.R[rd] = pop(&reg);  // Desempilha e armazena em Rd
+                    }
+                    // Caso op_type seja 0x00, não faz nada e continua a execução
+    
+                }
                 break;
             case 0x09:  // JEQ endereço
                 if (reg.flags.Z) {
