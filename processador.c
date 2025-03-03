@@ -36,7 +36,7 @@ void print_state(Registers *reg) {
     printf("SP: 0x%08X\n", reg->SP);
 
     // Memória de dados
-    printf("\nMemória de dados:\n");
+    printf("\nMemoria de dados:\n");
     for (int i = 0; i < 0x10000; i++) {
         if (data_mem[i] != 0) {
             printf("0x%04X: 0x%04X\n", i, data_mem[i]);
