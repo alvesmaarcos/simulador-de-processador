@@ -7,7 +7,7 @@
 
 0006: 0x0009 # PSH R2
 
-0008: 0x0001 # PSH R0
+0008: 0x1040 # MOV R0, R2
 
 000A: 0x0702 # POP R7
 
@@ -17,6 +17,6 @@
 
 0010: 0x0FC1 # CMP JEQ inicio
 
-0012: 0x1040 # MOV R0, R2
+0012: 0x0001 # PSH R0
     
 0014: 0x0FF8 #JMP fim

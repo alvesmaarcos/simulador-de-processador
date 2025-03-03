@@ -120,13 +120,20 @@ while (!halt) {
         uint8_t imm = reg.IR & 0xFF;             // Valor imediato
 
         switch (opcode) {
-            case 0x03:  // MOV Rd, #imm
+            case 0x02: // MOV Rd, Rm
+                printf("MOV R%d, R%d\n", rd, rs);  // Depuração
+                reg.R[rd] = reg.R[rs];
+                break;
+            case 0x03: // MOV Rd, #imm
+                printf("MOV R%d, #%d\n", rd, imm);  // Depuração
                 reg.R[rd] = imm;
                 break;
             case 0x08:  // ADD Rd, Rs, Rt
+                printf("ADD R%d, R%d, R%d\n", rd, rs, (reg.IR >> 2) & 0x07);  // Depuração
                 reg.R[rd] = reg.R[rs] + reg.R[(reg.IR >> 2) & 0x07];
                 break;
-            case 0x05:  // SUB Rd, Rs, Rt
+            case 0x05: // SUB Rd, Rs, Rt
+                printf("SUB R%d, R%d, R%d\n", rd, rs, (reg.IR >> 2) & 0x07);  // Depuração
                 reg.R[rd] = reg.R[rs] - reg.R[(reg.IR >> 2) & 0x07];
                 break;
                 case 0x00:  // Instruções que começam com 0x00 (PSH, POP ou NOP)
