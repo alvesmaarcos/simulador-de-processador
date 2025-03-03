@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 
 // Estrutura para os registradores e flags
 typedef struct {
@@ -45,8 +46,8 @@ void print_state(Registers *reg) {
 
     // Pilha
     printf("\nPilha:\n");
-    for (int i = 0; i < 16; i++) {
-        printf("0x%08X: 0x%04X\n", 0x82000000 - i * 2, stack_mem[i]);
+    for (int i = 0; i < 8; i++) {
+        printf("0x%04X: 0x%04X\n", 0x8200 - i * 2, stack_mem[i]);
     }
 
     // Flags
@@ -56,22 +57,22 @@ void print_state(Registers *reg) {
 
 // Função para empilhar um valor na pilha
 void push(Registers *reg, uint16_t value) {
-    if (reg->SP < 0x82000000 || reg->SP > 0x82000020) {
+    if (reg->SP < 0x81F0 || reg->SP > 0x8200) {
         fprintf(stderr, "Erro: Estouro de pilha!\n");
         exit(1);
     }
+    stack_mem[abs(reg->SP - 0x8200) / 2] = value;
     reg->SP -= 2;
-    stack_mem[(reg->SP - 0x82000000) / 2] = value;
 }
 
 // Função para desempilhar um valor da pilha
 uint16_t pop(Registers *reg) {
-    if (reg->SP >= 0x82000020) {
+    if (reg->SP > 0x8200) {
         fprintf(stderr, "Erro: Estouro de pilha!\n");
         exit(1);
     }
     reg->SP += 2;
-    return stack_mem[(reg->SP - 0x82000000) / 2];
+    return stack_mem[abs(reg->SP - 0x8200) / 2];
 }
 
 // Função principal
@@ -83,7 +84,7 @@ int main(int argc, char *argv[]) {
 
     // Inicialização dos registradores e memória
     Registers reg = {0};
-    reg.SP = 0x82000020;  // Inicializa o SP (topo da pilha)
+    reg.SP = 0x8200;  // Inicializa o SP (topo da pilha)
     memset(prog_mem, 0, sizeof(prog_mem));
     memset(data_mem, 0, sizeof(data_mem));
     memset(stack_mem, 0, sizeof(stack_mem));
@@ -114,7 +115,7 @@ while (!halt) {
 
         // Decode & Execute
         uint8_t opcode = (reg.IR >> 11) & 0x1F;  // Primeiros 5 bits
-        uint8_t rd = (reg.IR >> 8) & 0x07;        // Registrador destino
+        uint8_t rd = (reg.IR >> 8) & 0x07;       // Registrador destino
         uint8_t rs = (reg.IR >> 5) & 0x07;       // Registrador fonte
         uint8_t imm = reg.IR & 0xFF;             // Valor imediato
 
@@ -134,8 +135,8 @@ while (!halt) {
                     uint8_t op_type = reg.IR & 0x03;
             
                     // Depuração: Exibe o valor de IR e os dois últimos bits
-                    printf("IR: 0x%04X, op_type: 0x%02X\n", reg.IR, op_type);
-            
+                    // printf("IR: 0x%04X, op_type: 0x%02X\n", reg.IR, op_type);
+
                     // Verifica o tipo de operação
                     if (op_type == 0x01) {  // PSH Rs (termina com 01)
                         uint8_t rsPsh = (reg.IR >> 2) & 0x02;  // Extrai o registrador fonte (Rs)
