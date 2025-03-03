@@ -129,6 +129,7 @@ while (!halt) {
                 reg.R[rd] = imm;
                 break;
             case 0x08:  // ADD Rd, Rs, Rt
+                {
                 uint8_t rt = (reg.IR >> 2) & 0x07;
                 printf("ADD R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
                 
@@ -144,8 +145,10 @@ while (!halt) {
                 int16_t s_result = (int16_t)reg.R[rd];
                 reg.flags.Ov = ((s_rs > 0 && s_rt > 0 && s_result < 0) ||
                                 (s_rs < 0 && s_rt < 0 && s_result >= 0));
+                }
                 break;
-            case 0x05: // SUB Rd, Rs, Rt
+            case 0x0A: // SUB Rd, Rs, Rt
+                {
                 uint8_t rt = (reg.IR >> 2) & 0x07;
                 printf("SUB R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
                 
@@ -161,8 +164,10 @@ while (!halt) {
                 int16_t s_result = (int16_t)reg.R[rd];
                 reg.flags.Ov = ((s_rs > 0 && s_rt > 0 && s_result < 0) ||
                                 (s_rs < 0 && s_rt < 0 && s_result >= 0));
+                }
                 break;
             case 0x0C:  // MUL Rd, Rs, Rt
+                {
                 uint8_t rt = (reg.IR >> 2) & 0x07;
                 printf("MUL R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
                 
@@ -178,6 +183,7 @@ while (!halt) {
                 int16_t s_result = (int16_t)reg.R[rd];
                 reg.flags.Ov = ((s_rs > 0 && s_rt > 0 && s_result < 0) ||
                                 (s_rs < 0 && s_rt < 0 && s_result >= 0));
+                }
                 break;
             case 0x00:  // Instruções que começam com 0x00 (PSH, POP, CMP ou NOP)
                 {
@@ -199,35 +205,45 @@ while (!halt) {
                         reg.R[rd] = pop(&reg);  // Desempilha e armazena em Rd
                     }else if(op_type == 0x03){ // CMP Rm, Rn
                         uint8_t rt = (reg.IR >> 2) & 0x07;
+                        printf("CMP R%d, R%d\n", rs, rt);
                         reg.flags.Z = (rs = rt) ? 1 : 0;
-                        reg.flags.C = (rs < rt) ? 1 : 0;                    
+                        reg.flags.S = (rs < rt) ? 1 : 0;                    
                     }else  //NOP (exibe as informações até o momento da execução)
                         print_state(&reg);    
                 }
                 break;
             case 0x01:  // Instruções que começam com 0x01 (JMP, JEQ, JLT, JGT)
+                {
                 uint8_t op_type = reg.IR & 0x03;
                 uint8_t im = (reg.IR >> 2) & 0xFF;
                     if (op_type == 0x00){  // JMP #Imm
+                        printf("JMP #%d\n", im);
                         next_pc = reg.PC + (int8_t)im;
                     }
                     else if (op_type = 0x01){ // JEQ #Imm
-                        if (reg.flags.Z && !reg.flags.C)
+                        if (reg.flags.Z && !reg.flags.S){
+                            printf("JEQ #%d\n", im);
                             next_pc = reg.PC + (int8_t)im;
+                        }    
                     }
                     else if (op_type = 0x02){ // JLT #Imm
-                        if (!reg.flags.Z && reg.flags.C)
+                        if (!reg.flags.Z && reg.flags.S){
+                            printf("JLT #%d", im);
                             next_pc = reg.PC + (int8_t)im;
+                        }
                     }else if (op_type = 0x03){ // JGT #Imm
-                        if (!reg.flags.Z && !reg.flags.C)
+                        if (!reg.flags.Z && !reg.flags.S){
+                            printf("JGT #%d", im);
                             next_pc = reg.PC + (int8_t)im;
+                        }
                     }
+                }
                 break;
             case 0x1F:  // HALT
                 halt = true;
                 break;
             default:
-                fprintf(stderr, "Instrução desconhecida: 0x%04X\n", reg.IR);
+                fprintf(stderr, "Instrucao desconhecida: 0x%04X\n", reg.IR);
                 halt = true;
                 break;
         }
