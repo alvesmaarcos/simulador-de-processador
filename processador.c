@@ -164,8 +164,8 @@ while (!halt) {
                     }else { // CMP Rm, Rn
                         uint8_t rt = (reg.IR >> 2) & 0x07;
                         printf("CMP R%d, R%d\n", rs, rt);
-                        reg.flags.Z = (rs == rt) ? 1 : 0;
-                        reg.flags.S = (rs < rt) ? 1 : 0;                    
+                        reg.flags.Z = (reg.R[rs] == reg.R[rt]) ? 1 : 0;
+                        reg.flags.S = (reg.R[rs] < reg.R[rt]) ? 1 : 0;                    
                     }
                 }
                 break;
