@@ -146,7 +146,7 @@ while (!halt) {
 
                     // Verifica o tipo de operação
                     if (op_type == 0x01) {  // PSH Rs (termina com 01)
-                        uint8_t rsPsh = (reg.IR >> 2) & 0x02;  // Extrai o registrador fonte (Rs)
+                        uint8_t rsPsh = (reg.IR >> 8) & 0x07;  // Extrai o registrador fonte (Rs)
                         printf("PSH R%d\n", rsPsh);  // Depuração: Exibe o registrador fonte
                         push(&reg, reg.R[rsPsh]);  // Empilha o valor de Rs
                     }
