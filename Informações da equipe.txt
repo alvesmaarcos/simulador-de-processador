@@ -1,7 +1,0 @@
-Nomes dos participantes:
-
-Davi Sousa Facundo - 565910
-Edivar Cruz Carvalho Filho - 565857
-Marcos Emanuel Alves Dias - 568099
-
-Foi feito no Windows 11, através do Visual Studio Code.
