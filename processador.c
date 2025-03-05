@@ -136,13 +136,99 @@ while (!halt) {
                 reg.R[rd] = imm;
                 break;
             case 0x08:  // ADD Rd, Rs, Rt
-                printf("ADD R%d, R%d, R%d\n", rd, rs, (reg.IR >> 2) & 0x07);  // Depuração
-                reg.R[rd] = reg.R[rs] + reg.R[(reg.IR >> 2) & 0x07];
+                {
+                uint8_t rt = (reg.IR >> 2) & 0x07;
+                printf("ADD R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
+                reg.R[rd] = reg.R[rs] + reg.R[rt];
+                reg.flags.Z = (reg.R[rd] == 0);
+                reg.flags.S = (reg.R[rd] & 0x8000) != 0;
+                reg.flags.C = (reg.R[rs] + reg.R[rt] > 0xFFFF);
+                reg.flags.Ov = (((reg.R[rs] ^ reg.R[rt]) & 0x8000) == 0) &&
+                (((reg.R[rs] ^ reg.R[rd]) & 0x8000) != 0);
                 break;
-            case 0x05: // SUB Rd, Rs, Rt
-                printf("SUB R%d, R%d, R%d\n", rd, rs, (reg.IR >> 2) & 0x07);  // Depuração
-                reg.R[rd] = reg.R[rs] - reg.R[(reg.IR >> 2) & 0x07];
+                }
+            case 0x0A: // SUB Rd, Rs, Rt
+                {
+                uint8_t rt = (reg.IR >> 2) & 0x07;
+                printf("SUB R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
+                reg.R[rd] = reg.R[rs] - reg.R[rt];
+                reg.flags.Z = (reg.R[rd] == 0);
+                reg.flags.S = (reg.R[rd] & 0x8000) != 0;
+                reg.flags.C = (reg.R[rs] < reg.R[rt]);
+                reg.flags.Ov = (((reg.R[rs] ^ reg.R[rt]) & 0x8000) != 0) &&
+                (((reg.R[rs] ^ reg.R[rd]) & 0x8000) != 0);
                 break;
+                }
+            case 0x0C: // MUL Rd, Rs, Rt
+                {
+                uint8_t rt = (reg.IR >> 2) & 0x07;
+                printf("MUL R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
+                reg.R[rd] = reg.R[rs] * reg.R[rt];   
+                reg.flags.Z = (reg.R[rd] == 0);
+                reg.flags.S = (reg.R[rd] & 0x8000) != 0;
+                reg.flags.C = ((reg.R[rs] * reg.R[rt]) > 0xFFFF);
+                reg.flags.Ov = (((reg.R[rs] * reg.R[rt]) & 0x8000) != 0) &&
+                ((reg.R[rs] & 0x8000) == (reg.R[rt] & 0x8000));
+                break;
+                }
+            case 0x0E: // AND Rd, Rs, Rt
+                {
+                    uint8_t rt = (reg.IR >> 2) & 0x07;
+                    printf("AND R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
+                    reg.R[rd] = reg.R[rs] & reg.R[rt];
+                    reg.flags.Z = (reg.R[rd] == 0);
+                    reg.flags.S = (reg.R[rd] & 0x8000) != 0;
+                    reg.flags.C = 0;
+                    reg.flags.Ov = 0;
+                    break;
+                }
+            case 0x10: // ORR Rd, Rs, Rt
+                {
+                    uint8_t rt = (reg.IR >> 2) & 0x07;
+                    printf("ORR R%d, R%d, R%d\n", rd, rs, rt);  // Depuração
+                    reg.R[rd] = reg.R[rs] | reg.R[rt];
+                    reg.flags.Z = (reg.R[rd] == 0);
+                    reg.flags.S = (reg.R[rd] & 0x8000) != 0;
+                    reg.flags.C = 0;
+                    reg.flags.Ov = 0;
+                    break;
+                }
+            case 0x12: // NOT Rd, Rs
+                {
+                    printf("NOT R%d, R%d\n", rd, rs);
+                    reg.R[rd] = ~reg.R[rs];
+                    reg.flags.Z = (reg.R[rd] == 0);
+                    reg.flags.S = (reg.R[rd] & 0x8000) != 0;
+                    reg.flags.C = 0;
+                    reg.flags.Ov = 0;
+                    break;
+                }
+            case 0x14: // XOR Rd, Rs, RT
+                {
+                    uint8_t rt = (reg.IR >> 2) & 0x07;
+                    printf("XOR R%d, R%d, R%d\n", rd, rs, rt);
+                    reg.R[rd] = reg.R[rs] ^ reg.R[rt];
+                    reg.flags.Z = (reg.R[rd] == 0);
+                    reg.flags.S = (reg.R[rd] & 0x8000) != 0;
+                    reg.flags.C = 0;
+                    reg.flags.Ov = 0;
+                    break;
+                }
+            case 0x16: //SHR Rd, Rm, #Im
+                {
+                    uint8_t shamt = reg.IR & 0x1F;
+                    printf("SHR R%d, R%d, #%d\n", rd, rs, shamt);
+                    reg.R[rd] = reg.R[rs] >> shamt;
+                    break;
+                }
+            case 0x18: // SHL Rd, Rm, #Im
+                {
+                    uint8_t shamt = reg.IR & 0x1F;
+                    printf("SHR R%d, R%d, #%d\n", rd, rs, shamt);
+                    reg.R[rd] = reg.R[rs] << shamt;
+                    break;
+                }
+            
                 case 0x00:  // Instruções que começam com 0x00 (PSH, POP ou NOP)
                 {
                     // Extrai os dois últimos bits da instrução
@@ -164,26 +250,48 @@ while (!halt) {
                     }else { // CMP Rm, Rn
                         uint8_t rt = (reg.IR >> 2) & 0x07;
                         printf("CMP R%d, R%d\n", rs, rt);
-                        reg.flags.Z = (reg.R[rs] == reg.R[rt]) ? 1 : 0;
-                        reg.flags.S = (reg.R[rs] < reg.R[rt]) ? 1 : 0;                    
+                        reg.flags.Z = (rs == rt) ? 1 : 0;
+                        reg.flags.S = (rs < rt) ? 1 : 0;                    
                     }
                 }
                 break;
-            case 0x09:  // JEQ endereço
-                if (reg.flags.Z) {
-                    next_pc = imm;
-                }
-                break;
-            case 0x0A:  // JMP endereço
+            case 0x01:  // JMP endereço
+            {
                 uint8_t op_type = reg.IR & 0x03;
-                uint16_t im = (reg.IR >> 2) & 0x1FF;
-                next_pc = imm;
+                uint8_t im = (reg.IR >> 2) & 0x1FF;
+
+                if (im & 0x100){
+                    im |= 0xFFE0;
+                }
+                    if (op_type == 0x00){  // JMP #Imm
+                        printf("JMP #%d\n", im);
+                        reg.PC += im;
+                    }
+                    else if (op_type = 0x01){ // JEQ #Imm
+                        if (reg.flags.Z && !reg.flags.S){
+                            printf("JEQ #%d\n", im);
+                            reg.PC += im;
+                        }    
+                    }
+                    else if (op_type = 0x02){ // JLT #Imm
+                        if (!reg.flags.Z && reg.flags.S){
+                            printf("JLT #%d\n", im);
+                            reg.PC += im;
+                        }
+                    }else if (op_type = 0x03){ // JGT #Imm
+                        if (!reg.flags.Z && !reg.flags.S){
+                            printf("JGT #%d\n", im);
+                            reg.PC += im;
+                        }
+                    }
                 break;
-            case 0x0B:  // HALT
+            }
+            case 0x1F:  // HALT
+                printf("HALT\n"); //Depuração
                 halt = true;
                 break;
             default:
-                fprintf(stderr, "Instrução desconhecida: 0x%04X\n", reg.IR);
+                fprintf(stderr, "Instrucao desconhecida: 0x%04X\n", reg.IR);
                 halt = true;
                 break;
         }
